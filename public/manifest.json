@@ -1,0 +1,7 @@
+{
+  "name": "InventoryBot",
+  "short_name": "Inventory bot",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "portrait"
+}
