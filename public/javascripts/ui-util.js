@@ -1,18 +1,18 @@
 var showElements = function(elements) {
-    elements.forEach(e=>{
-        var elem = document.getElementById(e);
+    for (var i =0; i < elements.length; ++i){
+        var elem = document.getElementById(elements[i]);
         elem.removeAttribute('hidden');
-    });
+    }
 
 };
 var hideElements = function(elements){
-    elements.forEach(e=>{
-        var elem = document.getElementById(e);
+    for (var i =0; i < elements.length; ++i){
+        var elem = document.getElementById(elements[i]);
         elem.setAttribute('hidden', 'true');
-    });
+    }
 };
 
-function parseQuery(queryString) {
+function parseQueryString(queryString) {
     var query = {};
     var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
     for (var i = 0; i < pairs.length; i++) {
@@ -22,15 +22,20 @@ function parseQuery(queryString) {
     return query;
 };
 var buildDataTable = function(parent_element, data, headers) {
-
-    let tBody = document.getElementById(parent_element);
-    headers.forEach(h => {
-        let td = document.createElement("td");
-        let t = document.createTextNode(data[h]);
-        td.appendChild(t);
-        tBody.appendChild(td);
-    });
-};
+    const tBody = document.getElementById(parent_element);
+    for (var r = 0; r < data.length; r++) {
+        var row = data[r];
+        var tr = document.createElement("tr");
+        for (var i = 0; i < headers.length; i++) {
+            h = headers[i];
+            var td = document.createElement("td");
+            var t = document.createTextNode(row[h]);
+            td.appendChild(t);
+            tr.appendChild(td);
+        }
+        tBody.appendChild(tr);
+    }
+}
 
 var getCookie = function(cookieName){
     return Cookies.get(cookieName);

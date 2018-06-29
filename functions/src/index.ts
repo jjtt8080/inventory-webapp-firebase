@@ -162,10 +162,10 @@ const getCompanyFromReferalCode = function (req, res) {
             const uid = decodedToken.uid;
 
             const rCode = req.header("rCode");
-            if (rCode !== "" && rCode !== 'undefined') {
+            if (rCode !== "" && rCode !== undefined) {
                 fireAdmin.auth().getUser(uid).then(u => {
                     getFieldDataInTable('Companies', 'referalCode', 'id', false, rCode).then(function (companyID) {
-                        if (companyID['id'] !== 'undefined' && companyID['id'] !== "") {
+                        if (companyID['id'] !== undefined && companyID['id'] !== "") {
                             console.log("Setting company info in user: " + u.email + "companyID" + companyID);
                             updateCompanyInfoInUser(db, u, companyID['id'], res).then(function (error) {
                                 db.collection('Companies').where('id', '==', companyID['id']).get()

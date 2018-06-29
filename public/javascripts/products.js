@@ -94,9 +94,10 @@ var getProducts = function() {
             hideElements(['loading_products']);
             try {
 
-                var product_info = JSON.parse(req.responseText);
+                const product_info = JSON.parse(req.responseText);
                 console.log("req.responseText for getProducts" + req.responseText);
-                buildDataTable('products_body_form',product_info, ["product_desc", "quantity", "vendor_id"]);
+                const product_header =  ['product_desc', 'quantity', 'vendor_id'];
+                buildDataTable('products_body_form',product_info, product_header);
                 setCookie('products_form', req.responseText);
 
             } catch(error) {

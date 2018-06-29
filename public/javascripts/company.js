@@ -87,7 +87,7 @@ var handleCompanyInfo = function(user) {
     var token = user.getIdToken(true).then(function(accessToken) {
         req.setRequestHeader("idToken", accessToken);
         var rCode = getCookie('rCode');
-        if (rCode != "") {
+        if (rCode != "" && rCode != 'undefined' && rCode != undefined) {
             req.setRequestHeader('rCode', rCode);
         }
         //var stringToken = JSON.stringify(token);
