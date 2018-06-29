@@ -29,20 +29,20 @@ var getTeamMembers = function(user) {
         if (req.readyState == 4 && req.status == 200) {
 
             try {
-                var team_info = JSON.parse(req.responseText);
-                buildDataTable('team_list', team_info, 'email')
-                updateStatusInfo('team_info_status', 'done');
+                var team_info = JSON.parse(req.responseText).email;
+                buildList('team_list', team_info)
+                updateStatusInfo('team_member_status', 'done');
 
             } catch(error) {
                 console.error("Error parsing reponse text" + error.message);
-                updateStatusInfo('team_info_status', error.message);
+                updateStatusInfo('team_member_status', error.message);
             }
 
         }
         else if (req.readyState == 4 && req.status == 401) { //
-            return updateStatusInfo( 'team_info_status', "permission denied");
+            return updateStatusInfo( 'team_member_status', "permission denied");
         } else if (req.readyState == 4 && req.status == 400) {
-            return updateStatusInfo('team_info_status', "Setting up new user info..");
+            return updateStatusInfo('team_member_status', "Setting up new user info..");
         }
     };
     req.open("GET", "getTeam");
