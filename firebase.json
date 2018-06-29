@@ -29,6 +29,18 @@
       {
         "source": "/createUser",
         "function": "createUser"
+      },
+      {
+        "source": "/sendEmail",
+        "function": "sendEmail"
+      },
+      {
+        "source": "/uploadProducts",
+        "function": "uploadProducts"
+      },
+      {
+        "source": "/getTeam",
+        "function": "getTeam"
       }
     ],
     "ignore": [
