@@ -57,7 +57,7 @@
 
         #message {
             background: white;
-            max-width: 400px;
+            max-width: fit-content;
             margin: 150px auto 16px;
             padding: 32px 24px;
             border-radius: 6px;
@@ -152,6 +152,20 @@
             height: 50px;
         }
 
+        .demo-layout-transparent {
+            background: url('images/warehouse-clean.jpg') center / cover;
+        }
+        .demo-layout-transparent .mdl-layout__header,
+        .demo-layout-transparent .mdl-layout__drawer-button {
+            /* This background is dark, so we set text to white. Use 87% black instead if
+               your background is light. */
+            color: white;
+        }
+        <!-- Icon List -->
+
+         .invite-list-icon {
+             width: 300px;
+         }
 
     </style>
     <script src="/__/firebase/4.1.3/firebase.js"></script>
@@ -171,12 +185,13 @@
 </head>
 <body>
 <div id="main">
-    <div class="mdl-layout mdl-js-layout mdl-layout-drawer">
-        <header class="mdl-layout__header">
+    <div class="mdl-layout mdl-js-layout mdl-layout-drawer demo-layout-transparent">
+        <header class="mdl-layout__header mdl-layout__header--transparent">
             <div class="mdl-layout__header-row">
                 <span class="mdl-layout-title">ScanFairy Home</span>
                 <div class="mdl-layout-spacer"></div>
-                <nav class="mdl-navigation">
+                    <span id="inner-message-profile"
+                          class="material-icons mdl-badge mdl-badge--overlap" hidden="true">account_box</span>
                     <br>
                     <div id="google-signout-form" hidden='true'>
                         <a class="mdl-navigation__link" href="#">Sign out</a>
@@ -187,17 +202,7 @@
                     </div>
                     <br>
 
-                </nav>
-            </div>
-            <div class="mdl-layout__header-row">
-                <div class="mdl-layout-spacer"></div>
-                <nav class="mdl-navigation">
-                    <br>
-                    <div id="inner-message-profile" hidden='true'>
-                    </div>
-                    <br>
-
-                </nav>
+                
             </div>
 
         </header>
@@ -208,6 +213,7 @@
                 <a class="mdl-navigation__link" href="logon.html?getProducts=true">Products</a>
                 <a class="mdl-navigation__link" href="logon.html?getCompany=true">Company Profile</a>
                 <a class="mdl-navigation__link" href="logon.html?getUser=true">User Profile</a>
+                <a class="mdl-navigation__link" href="logon.html?getTeam=true">Team</a>
 
             </nav>
         </div>
@@ -275,27 +281,40 @@
                 </div>
 
                 <div id="product_form" hidden="true">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar"></div>
+                    </div>
+                    <div id="upload_products_file">
+                        <form  method="post" enctype="multipart/form-data">
+                            <label for="upload-input"> Select a file to upload.</label>
+                            <input type="file" name="uploads[]" id="upload-input" accept=".txt | .json | .csv">
+                            <input type="submit" class="btn btn-lg" id="upload-btn"/>
+                        </form>
+                        <div id="upload_response"></div>
+                    </div>
+                    <div id="loading_products" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"
+                         hidden='true'></div>
                     <table class="mdl-data-table mdl-js-data-table">
                         <thead>
-                        <th>Product Description</th>
+                        <th class="mdl-data-table__cell--non-numeric">Product Description</th>
                         <th>Quantity</th>
                         <th>Vendor</th>
                         </thead>
-                        <tbody id="products_form">
+                        <tbody id="products_body_form">
                         </tbody>
                     </table>
                     <div id="product_info_status"></div>
                 </div>
 
-                <div id="company_form" hidden="true">
+                <div id="company_form" hidden='true'>
                     <h4>Company profile</h4>
                     <div id="loading_company" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"
-                         hidden="true"></div>
+                         hidden='true'></div>
                     <p id="company_info_prompt"> Please enter your company info.</p>
                     <div id="company_info">
                         <div class="mdl-textfield  mdl-js-textfield mdl-textfield--floating-label">
                             <input class="mdl-textfield__input" type="text" id="company_name">
-                            <label class="mdl   -textfield__label" for="company_name">Company Name</label>
+                            <label class="mdl-textfield__label" for="company_name">Company Name</label>
                         </div>
 
                         <br>
@@ -322,16 +341,20 @@
                             <input class="mdl-textfield__input" type="text" id="company_country">
                             <label class="mdl-textfield__label" for="company_country">Country:</label>
                         </div>
-                        <div class="mdl-button mdl-js-button" id="setup_company_button">
+                        <div class="mdl-button mdl-js-button" id="setup_company_button" hidden="true">
                             <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                                 <i class="material-icons">add</i>
                             </button>
                         </div>
                         <br>
                         <div id="company_info_status"></div>
-                        <h4 id="email_invite_prompt">Invitation</h4>
-                        <p>Share this website with your coworkers in the company who will be collaborating in input
-                            data.</p>
+                    </div>
+                    <div id="team_admin_invite" hidden="true">
+                        <h4 id="email_invite_prompt">Team</h4>
+                        <p>Share this website with your coworkers who will be collaborating in input
+                            data. Once they accept the invitation, you can refresh back to this page to setup their
+                            privileges.</p>
+
                         <div class="mdl-textfield  mdl-js-textfield mdl-textfield--floating-label">
                             <input class="mdl-textfield__input" type="text" id="invite_list">
                             <label class="mdl-textfield__label" for="invite_list">Enter comma-separated email
@@ -342,11 +365,14 @@
                                 <i class="material-icons" onclick="sendInviteEmail(); return false;">send</i>
                             </button>
                         </div>
+                        <div id="email_send_status"></div>
                     </div>
                 </div>
-                <div id="user_form" hidden="true">
+                <div id="user_form" hidden='true'>
                     <h3>User profile</h3>
                     <p id="user_info_prompt"> Please enter personal information.</p>
+                    <div id="loading_user" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"
+                         hidden='true'></div>
                     <div id="user_info">
                         <div class="mdl-textfield  mdl-js-textfield mdl-textfield--floating-label">
                             <input class="mdl-textfield__input" type="text" id="first_name">
@@ -373,6 +399,14 @@
                         <div id="user_info_status"></div>
                     </div>
                 </div>
+                <div id="team_form" hidden="true">
+
+                    <h6> Team members </h6>
+                    <ul class="demo-list-icon mdl-list" id="team_member_list">
+
+                    </ul>
+                    <div id="team_member_status"></div>
+                </div>
             </div>
         </main>
     </div>
@@ -383,10 +417,13 @@
 
     <!-- include only the Firebase features as you need -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <script src="javascripts/signin-util.js"></script>
+    <script src="javascripts/ui-utils.js"></script>
     <script src="javascripts/products.js"></script>
     <script src="javascripts/company.js"></script>
     <script src="javascripts/user.js"></script>
+    <script src="javascripts/team.js"></script>
     <script src="javascripts/main.js"></script>
 
 </div>
