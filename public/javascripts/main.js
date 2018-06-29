@@ -30,21 +30,12 @@ logon.prototype.checkSetup = function() {
     firebase.auth().signOut().then(function() {
         console.log('Firebase User signed out.');
     });
-    var signOutForm = document.getElementById("google-signout-form");
-    var signinForm = document.getElementById("google-signin-form");
-    var deleteForm = document.getElementById("delete-account");
-    var messageForm = document.getElementById("inner-message");
-    var profileForm = document.getElementById('inner-message-profile');
 
-    signOutForm.setAttribute('hidden', 'true');
-    deleteForm.setAttribute('hidden', 'true');
-    signinForm.removeAttribute('hidden');
-    messageForm.removeAttribute('hidden');
-    profileForm.setAttribute('hidden', 'true');
+    hideElements(['google-signout-form', 'delete-account', 'inner-message-profile'])
+    showElements(['google-signin-form', 'inner-message'])
+
 };
-var sendInviteEmail = function() {
 
-}
 
 var basicLogon = function() {
     // var user = document.getElementById('username').className;
@@ -68,57 +59,60 @@ var basicLogon = function() {
 
 };
 
+
+
 /**
  * Displays the UI for a signed in user.
  * @param {!firebase.User} user
  */
 var handleSignedInUser = function(user) {
-    var signOutForm = document.getElementById("google-signout-form");
-    var signinForm = document.getElementById("google-signin-form");
-    var deleteForm = document.getElementById('delete-account-form');
-    var aboutForm = document.getElementById('about-form');
 
-    signOutForm.removeAttribute('hidden');
-    deleteForm.removeAttribute('hidden');
-    aboutForm.removeAttribute('hidden');
-    signinForm.setAttribute('hidden', 'true');
-    var innerMessage = document.getElementById('inner-message');
-    innerMessage.setAttribute('hidden', 'true');
+    showElements(['google-signout-form', 'delete-account-form', 'about-form']);
+    hideElements(['google-signin-form', 'inner-message']);
+
     var profileForm = document.getElementById('inner-message-profile');
-    profileForm.innerHTML =  user.email +  "<img height=40 width=40 src=\"" + user.photoURL + "\"/>";
+    console.log("user protoURL " + user.photoURL);
+    profileForm.setAttribute('data-badage', user.email);
+    showElements(['inner-message-profile']);
 
-    profileForm.removeAttribute('hidden');
     var origStr = window.location.search;
     var q = origStr.substr(1, origStr.length-1);
     var queryParam = parseQueryString(q);
+
+    var rCode = queryParam['rCode'];
+    if (rCode == undefined || rCode == "")
+        rCode = getCookie('rCode');
+    if (rCode != "") {
+        setCookie("rCode", rCode, 7);
+        console.log("set rcode " + rCode);
+    }
+
     if (queryParam['getProducts'] === 'true'){
         getProducts();
-        document.getElementById('about-form').setAttribute('hidden', 'true');
-        document.getElementById("message").removeAttribute('hidden');
-        document.getElementById('company_form').setAttribute('hidden', 'true');
-        document.getElementById('user_form').setAttribute('hidden', 'true');
-        document.getElementById('product_form').removeAttribute('hidden');
-
+        hideElements(['about-form', 'company_form', 'user_form', 'team_form']);
+        showElements(['product_form', 'message']);
 
     }
     else if (queryParam['getCompany'] == 'true') {
         getCompany();
-        document.getElementById('about-form').setAttribute('hidden', 'true');
-        document.getElementById("message").removeAttribute('hidden');
-        document.getElementById('user_form').setAttribute('hidden', 'true');
-        document.getElementById('product_form').setAttribute('hidden', 'true');
-        document.getElementById('company_form').removeAttribute('hidden');
+        hideElements(['about-form', 'product_form', 'user_form', 'team_form']);
+        showElements(['company_form', 'message']);
+
     }
-    else if (queryParam['getUser'] == 'true'){
+    else if (queryParam['getUser'] == 'true') {
         getUser();
-        document.getElementById('about-form').setAttribute('hidden', 'true');
-        document.getElementById("message").removeAttribute('hidden');
-        document.getElementById('product_form').setAttribute('hidden', 'true');
-        document.getElementById('company_form').setAttribute('hidden', 'true');
-        document.getElementById('user_form').removeAttribute('hidden');
+        hideElements(['about-form', 'product_form', 'company_form', 'team_form']);
+        showElements(['user_form', 'message']);
+
+    }else if (queryParam['getTeam'] == 'true') {
+        getCompany();
+        getTeam();
+        hideElements(['about-form', 'product_form', 'company_form', 'user_form']);
+        showElements(['team_form', 'message']);
+
     }else {
-        document.getElementById("message").setAttribute('hidden', 'true');
-        document.getElementById('about-form').removeAttribute('hidden');
+        hideElements(['message']);
+        showElements(['about-form']);
     }
 }
 
@@ -126,12 +120,17 @@ var handleSignedInUser = function(user) {
  * Displays the UI for a signed out user.
  */
 var handleSignedOutUser = function() {
-    document.getElementById('message').removeAttribute('hidden');
-    document.getElementById('google-signin-form').removeAttribute('hidden');
-    document.getElementById('google-signout-form').setAttribute('hidden', "true");
-    document.getElementById('delete-account-form').setAttribute('hidden', 'true');
-    document.getElementById('about-form').setAttribute('hidden', "true");
+    hideElements(['google-signout-form', 'delete-account-form', 'about-form']);
+    showElements(['message', 'google-signin-form'])
     //document.getElementById('company_info').setAttribute('hidden', "true");
+    var origStr = window.location.search;
+    var q = origStr.substr(1, origStr.length-1);
+    var queryParam = parseQueryString(q);
+    if (queryParam['rCode']==true) {
+        var invitor = queryParam['rCode'];
+        setCookie('rCode', invitor, 7);
+
+    }
     ui.start('#firebaseui-container', getUiConfig());
 };
 
@@ -148,14 +147,7 @@ var ui = new firebaseui.auth.AuthUI(firebase.auth());
 
 // Disable auto-sign in.
 ui.disableAutoSignIn();
-/*
-import {getRecaptchaMode} from './signin-util';
-import {getUiConfig} from './signin-util';
-import {deleteAccount} from './signin-util';
-import {updateStatusInfo} from './signin-util';
-import {emailLogin} from './signin-util';
-import {initApp} from './signin-util;'
-*/
+
 logon.prototype.initFirebase = function() {
     if (!this.auth) {
         this.auth = firebase.auth();
@@ -167,4 +159,5 @@ logon.prototype.initFirebase = function() {
 };
 window.onload = function() {
     window.logon = new logon();
+    //window.company_info = new Compoany();
 };

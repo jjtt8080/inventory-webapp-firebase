@@ -25,7 +25,12 @@ function getUiConfig() {
                 // Required to enable this provider in One-Tap Sign-up.
                 authMethod: 'https://accounts.google.com',
                 // Required to enable ID token credentials for this provider.
-                clientId: CLIENT_ID
+                clientId: CLIENT_ID,
+                customParameters: {
+                    // Forces account selection even when one account
+                    // is available.
+                    prompt: 'select_account'
+                }
             } /*,
             {
                 provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
@@ -78,6 +83,7 @@ function emailLogin () {
         var u = firebase.auth().currentUser;
         console.info('email verified or not? ' + u.emailVerified);
         if (!u.emailVerified) {
+            uppdateStatusInfo('email_auth_status', 'Check your email for the verification link.')
             u.sendEmailVerification().catch(function (error) {
                 var errorCode = error.code;
                 var errorMessage = error.message;
@@ -100,7 +106,6 @@ function emailLogin () {
         updateStatusInfo('email_auth_status', errorMessage);
     });
 };
-
 
 function handleRecaptchaConfigChange() {
     var newRecaptchaValue = document.querySelector(
@@ -135,15 +140,5 @@ function initApp() {
 
 
 };
-function parseQueryString (queryString ) {
-    var params = {}, queries, temp, i, l;
-    // Split into key/value pairs
-    queries = queryString.split("&");
-    // Convert the array of strings into an object
-    for ( i = 0, l = queries.length; i < l; i++ ) {
-        temp = queries[i].split('=');
-        params[temp[0]] = temp[1];
-    }
-    return params;
-};
+
 //export {initApp, emailLogin, updateStatusInfo, deleteAccount, getUiConfig, getRecaptchaMode};

@@ -20,18 +20,25 @@ function handleRecaptchaConfigChange() {
     ui.start('#firebaseui-container', getUiConfig());
 };
 
- /**
+/**
  * Displays the UI for a signed in user.
  * @param {!firebase.User} user
  */
 var handleSignedInUser = function(user) {
+
+    var origStr = window.location.search;
+    var q = origStr.substr(1, origStr.length-1);
+    var queryParam = parseQueryString(q);
+    if (queryParam["referal"] == 'true' && queryParam['rCode'] != "")
+        setCookie('rCode', queryParam['rCode']);
     document.getElementById('user-signed-out').setAttribute('hidden', 'true');
     document.getElementById('user-signed-in').removeAttribute('hidden');
     document.getElementById('firebaseui-spa').setAttribute('hidden', 'true');
     document.getElementById('google-signout-form').removeAttribute('hidden');
     document.getElementById('delete-account-form').removeAttribute('hidden');
+    document.getElementById('user-signed-in-form').innerHTML = "Click <a href=\"logon.html?getCompany=true&rCode=" + " +
+            getCookie('rCode') + "\">here</a> to setup your company info.";
 };
-
 
 
 
@@ -45,6 +52,8 @@ var handleSignedOutUser = function() {
     document.getElementById('google-signout-form').setAttribute('hidden', 'true');
     document.getElementById('delete-account-form').setAttribute('hidden', 'true');
     //document.getElementById('company_info').setAttribute('hidden', "true");
+    if (queryParam["referal"] == 'true' && queryParam['rCode'] != "")
+        setCookie('rCode', queryParam['rCode']);
     ui.start('#firebaseui-container', getUiConfig());
 };
 
