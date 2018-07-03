@@ -23,6 +23,13 @@
     "http-errors": "~1.6.2",
     "morgan": "~1.9.0",
     "nodemailer": "^4.6.7",
-    "pug": "2.0.0-beta11"
+    "pug": "2.0.0-beta11",
+    "firebase-functions-test":"0.1.2"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^0.1.2",
+    "mocha": "^5.2.0",
+    "tslint": "^5.10.0",
+    "typescript": "^2.9.2"
   }
 }
