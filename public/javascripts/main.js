@@ -105,7 +105,6 @@ var handleSignedInUser = function(user) {
         showElements(['user_form', 'message']);
 
     }else if (queryParam['getTeam'] == 'true') {
-        getCompany();
         getTeam();
         hideElements(['about-form', 'product_form', 'company_form', 'user_form']);
         showElements(['team_form', 'message']);

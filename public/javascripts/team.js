@@ -1,4 +1,5 @@
-var sendInviteEmail = function(user) {
+var sendInviteEmail = function() {
+    const user = firebase.auth().currentUser;
     var req = new XMLHttpRequest();
     req.onreadystatechange = function() {
         if (req.readyState == 4 && req.status == 200) {

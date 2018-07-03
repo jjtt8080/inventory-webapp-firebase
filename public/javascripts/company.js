@@ -57,7 +57,7 @@ var handleCompanyInfo = function(user) {
             document.getElementById("loading_company").setAttribute('hidden', 'true');
             try {
                 var company_info = JSON.parse(req.responseText);
-
+                setCookie("rCode", "");
                 $('#company_name')[0].parentElement.MaterialTextfield.change(company_info.name);
                 $('#company_addr')[0].parentElement.MaterialTextfield.change(company_info.address);
                 $('#company_city')[0].parentElement.MaterialTextfield.change(company_info.city);
