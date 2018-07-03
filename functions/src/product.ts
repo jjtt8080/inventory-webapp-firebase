@@ -1,11 +1,10 @@
-import {firebaseInit} from "./firebaseInit";
-const fireAdmin = firebaseInit.initApp('inventory');
-const functions = require('firebase-functions');
+import { initApp, getServiceAccount } from "./firebaseInit";
+const fireAdmin = initApp();
 const formidable = require('formidable');
-import {getFieldDataInTable, updateFieldInTable} from "./tableObj";
+import {getFieldDataInTable} from "./tableObj";
 
 const gcs = require('@google-cloud/storage');
-const serviceAccount = firebaseInit.getServiceAccount();
+const serviceAccount = getServiceAccount();
 const storage = new gcs({
     projectId: serviceAccount.projectId,
     keyFilename: 'lib/Inventory-5949b6de0981.json'
@@ -38,6 +37,7 @@ const handlecsvInput = function (fileName, companyID, uploader) {
             jsonObj["company_id"] = companyID;
             jsonObj["employee_email"] = uploader;
             console.log(JSON.stringify(jsonObj));
+            
             db.collection('Products').doc().set(jsonObj).then(p => {
                 totalNumRecords += 1;
                 console.log("inserted 1 record");
@@ -86,7 +86,7 @@ export const uploadProducts = function(req, res){
                         return res.status(401);
                     }
                     else {
-                        res.status(401);
+                        return res.status(401);
                     }
 
                 });
@@ -105,50 +105,26 @@ export const uploadProducts = function(req, res){
 };
 export const getProducts = function(req, res) {
     if (req.method === 'GET') {
-        const db = fireAdmin.firestore();
-
         const idToken = req.header("idToken");
         console.info("idToken: " + idToken);
         fireAdmin.auth().verifyIdToken(idToken).then(function (decodedToken) {
             console.info("done verifyToken" + decodedToken);
-
             const id = decodedToken.uid;
             console.info("done docodedToken.uid" + id);
             getCompanyID(id).then(function (company_id) {
                 console.info("company_id = " + company_id);
-                /*
-                getFieldDataInTable('Products',  'company_id', 'product_id', false, company_id).then(function(prod_id){
-                    console.info("prod_id" + prod_id);
+                getFieldDataInTable('Products',  'company_id', '*', false, company_id).then(function(allProducts){
+                    const retVal = JSON.stringify(allProducts);
+                    console.info("all_products" + retVal);
+                    return res.send(retVal);
                 }).catch(function(error){
                     console.error(error.toString());
+                    return res.status(401).send(error.toString());
                 });
-                */
 
-                db.collection('Products').where('company_id', '==', company_id).get()
-                    .then(function (snapShot) {
-                        console.info("snapshot size: " + snapShot.size);
-                        let accData = "[";
-                        let i = 0;
-                        snapShot.forEach(function (doc) {
-                            const p = doc.data();
-                            const t = JSON.stringify(p);
-                            console.log("snapShot for each" + t);
-                            accData += t;
-                            if (i < snapShot.size - 1)
-                                accData += ",";
-                            i += 1;
-                        });
-                        accData += "]";
-                        console.info("accData:" + accData);
-                        return res.send(accData);
-                        //res.status(200);
-                    }).catch(function (error) {
-                    console.error(error.toString());
-                    return res.status(401);
-                });
             }).catch(function (error) {
                 console.error(error.toString());
-                return res.status(400);
+                return res.sendStatus(400);
             });
         }).catch(function (error) {
             return res.sendStatus(400);
