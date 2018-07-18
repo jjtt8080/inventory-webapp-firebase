@@ -1,46 +1,48 @@
 {
   "name": "functions",
+  "description": "Cloud Functions for Firebase",
   "scripts": {
-    "lint": "tslint --project tsconfig.json",
-    "build": "tsc",
-    "serve": "npm run build && firebase serve --only functions",
-    "shell": "npm run build && firebase functions:shell",
+    "lint": "eslint .",
+    "build": "tsc -project tsconfig.json",
+    "serve": "firebase serve --only functions",
+    "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log",
-    "test": "mocha --reporter spec"
+    "logs": "firebase functions:log"
   },
-  "main": "lib/index.js",
+  "main": "bin/index.js",
   "dependencies": {
     "@google-cloud/storage": "^1.7.0",
     "async": "^2.6.1",
     "asyncawait": "^1.0.7",
     "body-parser": "~1.7.0",
+    "csvtojson": "^2.0.4",
+    "eslint": "^5.1.0",
     "express": "~4.16.0",
+    "f-streams": "^2.0.4",
     "firebase-admin": "~5.12.1",
     "firebase-functions": "^1.1.0",
+    "firebase-functions-test": "0.1.2",
     "formidable": "^1.2.1",
     "handlebars": "^4.0.11",
+    "mysql": "2.15.0",
     "nodemailer": "^4.6.7",
     "nodemailer-smtp-transport": "^2.7.4",
     "passport": "^0.4.0",
     "passport-google-oauth": "^1.0.0",
     "passport-google-oauth20": "~1.0.0",
-    "util": "^0.11.0",
-    "csvtojson":"^2.0.4",
-    "f-streams":"^2.0.4",
-    "firebase-functions-test":"0.1.2",
-    "mysql":"2.15.0",
-    "path":"0.12.7"
+    "path": "0.12.7",
+    "util": "^0.11.0"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "body-parser": "~1.7.0",
+    "chai": "4.1.2",
+    "eslint-plugin-promise": "^3.8.0",
     "express": "~4.16.0",
     "tslint": "^5.8.0",
-    "typescript": "^2.5.3",
-    "chai":"4.1.2"
+    "typescript": "^2.5.3"
   },
   "private": true
 }

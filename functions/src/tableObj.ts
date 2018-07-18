@@ -8,15 +8,15 @@ export const getFieldDataInTable= function(tableName: string, key: string, field
                 db.collection(tableName).doc(key).get().then(uSnapshot => {
                     const doc = uSnapshot.data();
                     if (fieldIDToReturn === ('*')) {
-                        resolve(doc);
+                        return resolve(doc);
                     } else {
                         const fieldValue = doc[fieldIDToReturn];
                         const returnValue = {};
                         returnValue[fieldIDToReturn] = fieldValue;
-                        resolve(returnValue);
+                        return resolve(returnValue);
                     }
                 }).catch(function (error) {
-                    reject("");
+                    return reject(error.toString());
                 });
 
         } else {
@@ -33,7 +33,7 @@ export const getFieldDataInTable= function(tableName: string, key: string, field
                             accuValue[fieldIDToReturn] = fieldValue;
                         }
                     });
-                    resolve(accuValue);
+                    return resolve(accuValue);
                 } else {
                     const accuValue = [];
 
@@ -42,7 +42,7 @@ export const getFieldDataInTable= function(tableName: string, key: string, field
                             accuValue.push(e.data());
                         })
                         console.info("resolved 1: "+ JSON.stringify(accuValue));
-                        resolve(accuValue);
+                        return resolve(accuValue);
                     }
                     else {
                         console.info("found " +uSnapshot.size + " 2 records");
@@ -51,11 +51,11 @@ export const getFieldDataInTable= function(tableName: string, key: string, field
                             accuValue.push(elem);
                         });
                         console.info("resolved 2 :"+ JSON.stringify(accuValue));
-                        resolve(accuValue);
+                        return resolve(accuValue);
                     }
                 }
             }).catch(function (error) {
-                reject("");
+                return reject(error.toString());
             });
         }
     });
@@ -91,6 +91,18 @@ const mergeJSON = function (target, add) {
     }   
     return target;
 };
+const updateDocumentSnapshot = function(u, tableName, key,updateObj) {
+    const promise1 = u.ref.get();
+    promise1.then(function(docSnapshot){
+        const origData = docSnapshot.data();
+        const mergedData = mergeJSON(origData, updateObj);
+        u.ref.update(mergedData);
+        return 1;
+    }).catch(function (error) {
+        return (0);
+    });
+    return 0;
+}
 export const updateFieldInTable = function (tableName:string, key: string, keyValue: any, updateObj: any) {
    
     console.info('update Field ' + JSON.stringify(updateObj));
@@ -98,25 +110,12 @@ export const updateFieldInTable = function (tableName:string, key: string, keyVa
         db.collection(tableName).where(key, '==', keyValue).get().then(function (uSnapshot) {
             let numberOfUpdates = 0;
             uSnapshot.forEach(function (u) {
-                u.ref.get().then( function(docSnapshot){
-                    const origData = docSnapshot.data();
-                    const mergedData = mergeJSON(origData, updateObj);
-                    u.ref.update(mergedData).then(updateS => {
-                        console.info("update " + tableName + ', primary key: ' + key + ',fieldID:' + JSON.stringify(updateObj));
-                        numberOfUpdates++;
-                    }).catch(function (error) {
-                        console.error("error updating field in " + tableName + "for " + key + " : " + keyValue);
-                
-                    });
-
-                }).catch(function(error){
-                    reject(0);
-                });
+                numberOfUpdates += updateDocumentSnapshot(u, tableName, key, updateObj);
             });    
-            resolve(numberOfUpdates);
+            return resolve(numberOfUpdates);
         }).catch(function (error) {
             console.error("error updating field in " + tableName + ', error :' + error);
-            reject(0);
+            return resolve(0);
         });
     });
 }
@@ -126,3 +125,5 @@ export const getNextID = function(tableName:string) {
     const c = db.collection(tableName).doc();
     return c.id;
 }
+
+

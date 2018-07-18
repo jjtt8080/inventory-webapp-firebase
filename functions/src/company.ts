@@ -1,69 +1,64 @@
-import { getFieldDataInTable, updateFieldInTable, getNextID, compareJSON} from "./tableObj";
+import { getFieldDataInTable, updateFieldInTable, getNextID, compareJSON } from "./tableObj";
 import { initApp } from "./firebaseInit";
+import { getUser } from "./user";
+import { getUIDFromToken, getUserFromToken} from "./firebaseInit";
 const fireAdmin = initApp();
-const updateCompanyInfoInUser = function (u, companyID, res) {
-    const updateData = {};
+const updateCompanyInfoInUser = function (u, companyID) {
+    const updateData: object = {};
     updateData['company_id'] = companyID;
     return updateFieldInTable('Users', 'email', u.email, updateData);
 };
 
 export const getCompanyID = function (id) {
-   
-    return new Promise(function (resolve, reject) {
-        fireAdmin.auth().getUser(id).then(function (u) {
+
+    return new Promise(function getID(resolve, reject) {
+        fireAdmin.auth().getUser(id).then(function getE(u) {
             console.info("done getUser email " + u.email);
-            resolve(getFieldDataInTable('Users', 'email', 'company_id', false, u.email));
-        }).catch(function (error) {
-            reject("");
+            return resolve(getFieldDataInTable('Users', 'email', 'company_id', false, u.email));
+        }).catch(function errorF(error) {
+            return resolve(null);
         });
     });
 };
 
+export const getCompanyInfoFromUID = function (u, companyID) {
+    var promise4 = updateCompanyInfoInUser(u, companyID['id']);
+    var promise5 = getFieldDataInTable('Companies', 'id', '*', false, companyID['id']);
+    return Promise.all([promise4, promise5]).then(function returnData(values) {
+        const data = values[1];
+        const companyInfo = JSON.stringify(data);
+        return companyInfo;
+    }).catch(function getErr2(error2) {
+        return "";
+    });
+
+}
 const getCompanyFromReferalCode = function (req, res) {
 
     const idToken = req.header("idToken");
-    fireAdmin.auth().verifyIdToken(idToken)
-        .then(function (decodedToken) {
-            const uid = decodedToken.uid;
-            const rCode = req.header("rCode");
-            if (rCode !== "" && rCode !== undefined) {
-                fireAdmin.auth().getUser(uid).then(u => {
-                    getFieldDataInTable('Companies', 'referalCode', 'id', false, rCode).then(function (companyID) {
-                        if (companyID['id'] !== undefined && companyID['id'] !== "") {
-                            console.log("Setting company info in user: " + u.email + "companyID" + companyID);
-                            updateCompanyInfoInUser(u, companyID['id'], res).then(function (error) {
-                                getFieldDataInTable('Companies', 'id', '*', false, companyID['id']).then(function (data) {
-                                    const companyInfo = JSON.stringify(data);
-                                    console.info("got company info from rcode" + companyInfo);
-                                    return res.send(companyInfo);
-                                }).catch(function (error2) {
-                                    console.error("error getting company info after finding the company id");
-                                    return res.status(400).send(error2.toString());
-                                });
-                            }).catch(function (error) {
-                                console.error("error updating the company info in user");
-                                return res.status(401).send(error.toString());
-                            });
-                        } else {
-                            return res.status(401).send("company id not defined");
-                        }
-                    }).catch(function (error) {
-                        console.error("error in getting field data" + error.toString());
-                        res.status(401).send(error.toString());
-                    });
-
-                }).catch(function (error) {
-                    console.error("error in authentication user" + error.toString());
-                    res.status(401).send(error.toString());
-                });
+    const rCode = req.header("rCode");
+    const promise1 = getUserFromToken(idToken);
+    if (rCode !== "" && rCode !== undefined) {
+        const promise2 = getFieldDataInTable('Companies', 'referalCode', 'id', false, rCode);
+        return Promise.all([promise1, promise2]).then(function (values) {
+            const u = values[0];
+            const companyID = values[1];
+            if (companyID['id'] !== undefined && companyID['id'] !== "") {
+                console.log("Setting company info in user: " + u.email + "companyID" + companyID);
+                const companyInfo = getCompanyInfoFromUID(u, companyID);
+                return companyInfo;
             } else {
-                res.status(401).send();
+                return null;
             }
-        }).catch(error => {
-            res.status(401).send(error.toString());
+        }).catch(function getErr4(error) {
+            console.error("error in getting field data" + error.toString());
+            return null;
         });
-};
 
+    } else {
+        return null;
+    }
+}
 export const getCompany = function (req, res) {
     if (req.method === 'GET') {
         //console.log("req.header " + req.header);
@@ -72,35 +67,25 @@ export const getCompany = function (req, res) {
         const rCode = req.header("rCode");
         if (rCode !== undefined && rCode !== "") {
             console.info("from rCode: " + rCode);
-            getCompanyFromReferalCode(req, res);
+            const promiseCompany = getCompanyFromReferalCode(req, res);
+            promiseCompany.then(companyData=>{
+                const companyInfoStr: string = JSON.stringify(companyData);
+                return res.status(200).send(companyInfoStr);
+            }).catch(error=>{
+                return res.status(401).send(error.toString());
+            });
         }
         else {
             console.info(" rCode empty ");
-            fireAdmin.auth().verifyIdToken(idToken).then(function (decodedToken) {
-                console.info("done /" + decodedToken);
-                const id = decodedToken.uid;
-                console.info("done docodedToken.uid" + id);
-                getCompanyID(id).then(function (compID) {
-                    const company_id = compID["company_id"];
-                    console.info("done getCompany_ID" + JSON.stringify(compID));
-                    if (company_id === -1 || !company_id) {
-                        res.status(400).send("company id not defined or -1");
-                    }
-                    else {
-                        getFieldDataInTable('Companies', 'id', '*', false, company_id).then(function (data) {
-                            const companyInfo = JSON.stringify(data);
-                            console.info("got company info from rcode" + companyInfo);
-                            return res.send(companyInfo);
-                        }).catch(function (error) {
-                            return res.status(400).send(error.toString());
-                        });
-                    }
-                }).catch(function (error) {
-                    console.error("error get companyID" + idToken);
-                    return res.status(401).send(error.toString());
-                });
-            }).catch(function (error) {
-                console.error("failed to authenticate");
+            const promise1 = getUIDFromToken(idToken)
+            const promise2 = promise1.then((uid) => getCompanyID(uid));
+            Promise.all([promise1, promise2]).then(function(values){
+                const uid = values[0];
+                const companyID = values[1];
+                const companyINFO = getCompanyInfoFromUID(uid, companyID);
+                return res.status(200).send(JSON.stringify(companyINFO));
+            }).catch(function getErr(error) {
+                console.error("error in getting field data" + error.toString());
                 return res.status(401).send(error.toString());
             });
         }
@@ -112,7 +97,7 @@ export const getCompany = function (req, res) {
 function getNextCompanyID(): string {
     console.info("in getNextCompany");
     return getNextID('Companies');
-};
+}
 
 const createnewCompanyInfo = function (data, u, res) {
     console.info("can not find such company, start from scratch");
@@ -120,15 +105,12 @@ const createnewCompanyInfo = function (data, u, res) {
     console.info("next company id is " + companyID + 'admin email set to:' + u.email);
     data['id'] = companyID;
     data['admin_email'] = u.email;
-    updateFieldInTable('Companies', 'id', companyID, data).then(function (updatedRecords) {
-            updateCompanyInfoInUser(u, companyID, res).then(function (error) {
-                console.log("add company in user successfully!");
-                return res.sendStatis(200);
-            }).catch(function (error) {
-                console.error("error updating company info in user");
-                return res.sendStatus(401);
-            })
 
+    const promise2 = updateFieldInTable('Companies', 'id', companyID, data);
+    const promise3 = updateCompanyInfoInUser(u, companyID);
+    Promise.all([promise2, promise3]).then(function(values){
+        console.log("updated company Info succesfully");
+        return res.sendStatus(201);
     }).catch(function (error1) {
         return res.sendStatus(400);
     });
@@ -155,31 +137,31 @@ const formDataFromReq = function (req) {
 const updateCompanyInfo = function (u, req, res, company_id) {
     let bAlreadySetup = false;
     console.info("update Compoany Info" + company_id);
-    getFieldDataInTable('Companies', 'id', '*', false, company_id).then(function(doc){
+    const reqData = formDataFromReq(req);
+    const promiseCompanyInfo = getCompanyInfoFromUID(u, company_id);
+    promiseCompanyInfo.then((doc)=>{
         const fieldToCompoare = ['name', 'address', 'zip', 'country', 'city', 'state'];
-        const reqData = formDataFromReq(req);
         const bSameInfo = compareJSON(doc, reqData, fieldToCompoare);
         if (doc['admin_email'] !== u.email) {
             console.error("email is not admin_email" + u.email);
-            return req.sendStatus(403);
-        }else {
+            return 403;
+        } else {
             if (bSameInfo) //nothing need to be done if information did not change
-                req.sendStatus(200);
+                return 200;
             reqData['id'] = company_id;
             reqData['admin_email'] = u.email;
             bAlreadySetup = true;
             console.info("The same company already setup, changing..." + reqData.name);
             console.info("setup companies with data" + JSON.stringify(reqData));
-            updateFieldInTable('Companies', 'id', company_id, reqData).then( p=> {
-                return res.sendStatus(201);
-            }).catch(function (error) {
-                console.error("can't insert data");
-                return res.sendStatus(400);
-            });
-
+            return 201;
         }
-    }).catch(function(error){
-        res.sendStatus(401);
+    }).then((status)=>{
+        if (status === 201) {
+            updateFieldInTable('Companies', 'id', company_id, reqData);
+        }
+        return status;
+    }).catch(updateCompanyInfoError=>{
+        return 403;
     });
 };
 export const setCompany = function (req, res) {
@@ -187,27 +169,20 @@ export const setCompany = function (req, res) {
         return res.sendStatus(201);
     }
     const idToken = req.header("idToken");
-    fireAdmin.auth().verifyIdToken(idToken)
-        .then(function (decodedToken) {
-            const uid = decodedToken.uid;
-            const data = formDataFromReq(req);
-            fireAdmin.auth().getUser(uid).then(u => {
-                console.log("getUser successfully in setCompany" + JSON.stringify(req.body));
-                getCompanyID(uid).then(function (company_id) {
-                    if (!company_id) {
-                        createnewCompanyInfo(data, u, res);
-                    } else {
-                        updateCompanyInfo(u, req, res, company_id);
-                    }
-                }).catch(function (error) {
-                    //No such company ID
-                    createnewCompanyInfo(data, u, res);
-                });
-            }).catch(function (error) {
-                return res.sendStatus(201);
-            });
-        }).catch(function (errorU) {
-            return res.sendStatus(201);
-        });
+    const data = formDataFromReq(req);
+    const uidPromise = getUserFromToken(idToken);
+    const companyIDPromise = uidPromise.then((userID)=>getCompanyID(userID));
+    Promise.all([uidPromise, companyIDPromise]).then(function(values){
+        const uid = values[0];
+        const company_id = values[1];
+        if (company_id !== null) {
+            const status = updateCompanyInfo(uid, req, res, company_id);
+            return res.sendStatus(status);
+        }else {
+            return createnewCompanyInfo(data, uid, res);
+        }
+    }).catch(function getErrorSetCompany(error){
+       return res.status(401).send(error.toString());
+    });
 }
 
