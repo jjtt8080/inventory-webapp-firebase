@@ -36,8 +36,10 @@ var handleSignedInUser = function(user) {
     document.getElementById('firebaseui-spa').setAttribute('hidden', 'true');
     document.getElementById('google-signout-form').removeAttribute('hidden');
     document.getElementById('delete-account-form').removeAttribute('hidden');
-    document.getElementById('user-signed-in-form').innerHTML = "Click <a href=\"logon.html?getCompany=true&rCode=" + " +
-            getCookie('rCode') + "\">here</a> to setup your company info.";
+    var str = "Click <a href=\"logon.html?getCompany=true&rCode=" + getCookie('rCode') ;
+    str += "\">here</a> to setup your company info.";
+    document.getElementById('user-signed-in-form').innerHTML = str;
+     ;
 };
 
 

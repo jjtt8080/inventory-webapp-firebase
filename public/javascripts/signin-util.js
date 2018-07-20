@@ -25,7 +25,7 @@ function getUiConfig() {
                 // Required to enable this provider in One-Tap Sign-up.
                 authMethod: 'https://accounts.google.com',
                 // Required to enable ID token credentials for this provider.
-                clientId: CLIENT_ID,
+                clientId: MY_CLIENT_ID,
                 customParameters: {
                     // Forces account selection even when one account
                     // is available.
@@ -41,7 +41,7 @@ function getUiConfig() {
         ],
         // Terms of service url.
         'tosUrl': 'https://www.google.com',
-        'credentialHelper': CLIENT_ID && CLIENT_ID != 'YOUR_OAUTH_CLIENT_ID' ?
+        'credentialHelper': MY_CLIENT_ID && MY_CLIENT_ID != 'YOUR_OAUTH_CLIENT_ID' ?
             firebaseui.auth.CredentialHelper.GOOGLE_YOLO :
             firebaseui.auth.CredentialHelper.ACCOUNT_CHOOSER_COM
     };
